@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS Terminal</title>
+<style>
+    body {
+        background-color: #000000;
+        font-family: monospace;
+        margin: 0;
+        padding: 10px;
+        color: white;
+    }
+    #terminal {
+        display: flex;
+        flex-direction: column;
+    }
+    .line {
+        display: flex;
+        align-items: center;
+    }
+    .prompt {
+        margin-right: 5px;
+        color: white;
+    }
+    .input-line input {
+        background: none;
+        border: none;
+        color: white;
+        outline: none;
+        font-family: monospace;
+        font-size: 16px;
+        flex: 1;
+    }
+    .output {
+        margin-left: 0;
+        color: white;
+        white-space: pre-wrap;
+    }
+</style>
+</head>
+<body>
+
+<div id="terminal">
+    <div class="line input-line">
+        <span class="prompt">root@nodejs:</span>
+        <input type="text" autofocus>
+    </div>
+</div>
+
+<script>
+    const terminal = document.getElementById('terminal');
+
+    // Override console.log to print in terminal
+    const originalLog = console.log;
+    console.log = function(...args) {
+        const output = document.createElement('div');
+        output.className = 'output';
+        output.textContent = args.join(' ');
+        terminal.appendChild(output);
+        originalLog.apply(console, args);
+    }
+
+    function createInputLine() {
+        const line = document.createElement('div');
+        line.className = 'line input-line';
+        const prompt = document.createElement('span');
+        prompt.className = 'prompt';
+        prompt.textContent = 'root@nodejs:';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.autofocus = true;
+
+        line.appendChild(prompt);
+        line.appendChild(input);
+        terminal.appendChild(line);
+
+        input.addEventListener('keydown', handleInput);
+        input.focus();
+    }
+
+    function handleInput(e) {
+        if (e.key === 'Enter') {
+            const input = e.target;
+            const code = input.value;
+            // Remove the old input to make it look like "entered"
+            input.removeEventListener('keydown', handleInput);
+            input.disabled = true;
+
+            try {
+                const result = eval(code);
+                if (result !== undefined) {
+                    const output = document.createElement('div');
+                    output.className = 'output';
+                    output.textContent = result;
+                    terminal.appendChild(output);
+                }
+            } catch (err) {
+                const output = document.createElement('div');
+                output.className = 'output';
+                output.textContent = `Error: ${err.message}`;
+                terminal.appendChild(output);
+            }
+
+            createInputLine();
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+    }
+
+    // Initialize first input line
+    const firstInput = document.querySelector('.input-line input');
+    firstInput.addEventListener('keydown', handleInput);
+</script>
+
+</body>
+</html>
